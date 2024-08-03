@@ -114,6 +114,12 @@ if __name__ == "__main__":
             "NKE", "ABBV", "CVX", "ORCL", "ACN", "AVGO", "LLY", "COST", "DHR", "QCOM",
             "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM"
         ]
+        # Renewable Energy or Environmental Protection Tickers, Tech Tickers (AI, Fintech, Cloud Computing, Robotics), Biotechnology and Pharmaceuticals
+        new_tickers = [
+            "ISRG", "SQ", "AMD", "ENPH", "SEDG", "FSLR", "RUN", "BE", "PLUG", "SPWR",
+            "NOVA", "BLDP", "REGI", "CWEN", "HASI", "BIIB", "AMGN", "GILD", "MRNA", "VRTX",
+            "FLNC", "RNW"
+        ]
         for ticker in tickers:
             data = fetch_and_filter_data(ticker)
             update_ticker_statement(db, ticker, data)
