@@ -10,5 +10,3 @@ COPY . .
 
 ENV PORT 8000
 EXPOSE 8000
-
-CMD exec gunicorn Fin4All.wsgi:application --bind :$PORT --workers 1 --threads 8
