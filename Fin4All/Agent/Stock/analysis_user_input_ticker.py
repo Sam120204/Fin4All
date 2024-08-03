@@ -1,8 +1,13 @@
 import yfinance as yf
 import pandas as pd
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+from dotenv import load_dotenv
+from fetch_ticker_price import fetch_price_data
 import json
-from fetch_apewisdom import fetch_top_stocks
+
 def fetch_and_filter_data(ticker_symbol):
+    # Initialize the Ticker object
     ticker = yf.Ticker(ticker_symbol)
 
     # Define the fields to keep
@@ -50,15 +55,20 @@ def fetch_and_filter_data(ticker_symbol):
     balance_sheet_dict = {str(k).split(" ")[0]: v for k, v in balance_sheet_dict.items()}
     cashflow_dict = {str(k).split(" ")[0]: v for k, v in cashflow_dict.items()}
 
+    # Fetch price data
+    price_data = fetch_price_data(ticker_symbol)
+
     # Create the final data structure
     data = {
         "ticker": ticker_symbol,
+        "price": price_data,
         "income_statement_quarter": income_stmt_dict,
         "balance_sheet": balance_sheet_dict,
         "cashflow": cashflow_dict
     }
 
     return data
+
 
 if __name__ == "__main__":
     ticker = "AAPL"
