@@ -1,7 +1,35 @@
 import yfinance as yf
 import pandas as pd
-import json
-from fetch_apewisdom import fetch_top_stocks
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from the .env file
+load_dotenv()
+
+MONGO_DB_USER = os.getenv('MONGO_DB_USER')
+MONGO_DB_PWD = os.getenv('MONGO_DB_PWD')
+
+# Connect to MongoDB
+def get_database():
+    try:
+        connect_string = f"mongodb+srv://{MONGO_DB_USER}:{MONGO_DB_PWD}@fin4all.r3ihnkl.mongodb.net/?retryWrites=true&w=majority&appName=Fin4All"
+        client = MongoClient(connect_string)
+        return client['Fin4All']
+    except ConnectionFailure as e:
+        print(f"Could not connect to MongoDB: {e}")
+        return None
+
+def create_collection_if_not_exists(db, collection_name):
+    try:
+        collection_names = db.list_collection_names()
+        if collection_name not in collection_names:
+            db.create_collection(collection_name)
+            print(f"Created the '{collection_name}' collection.")
+    except Exception as e:
+        print(f"Error creating collection: {e}")
+
 def fetch_and_filter_data(ticker_symbol):
     # Initialize the Ticker object
     ticker = yf.Ticker(ticker_symbol)
@@ -59,21 +87,31 @@ def fetch_and_filter_data(ticker_symbol):
         "cashflow": cashflow_dict
     }
 
-    # Save to a JSON file
-    with open(f'{ticker_symbol}_financials.json', 'w') as json_file:
-        json.dump(data, json_file, indent=4)
+    return data
 
-    print(f"Data for {ticker_symbol} has been saved to JSON file.")
+def update_ticker_statement(db, ticker, data):
+    try:
+        collection_name = "TickersStatement"
+        create_collection_if_not_exists(db, collection_name)
+        db[collection_name].update_one(
+            {"ticker": ticker},
+            {"$set": data},
+            upsert=True
+        )
+        print(f"Data for {ticker} has been updated in the database.")
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
-    # Test the function with different tickers
-    tickers = [
-        "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "BRK-B", "JPM", "JNJ", "V",
-        "WMT", "PG", "NVDA", "DIS", "PYPL", "MA", "HD", "VZ", "NFLX", "ADBE",
-        "INTC", "PFE", "T", "MRK", "KO", "PEP", "CMCSA", "ABT", "CSCO", "XOM",
-        "NKE", "ABBV", "CVX", "ORCL", "ACN", "AVGO", "LLY", "COST", "DHR", "QCOM",
-        "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM"
-    ]
-    tickers = fetch_top_stocks()
-    for ticker in tickers:
-        fetch_and_filter_data(ticker)
+    db = get_database()
+    if db is not None:
+        tickers = [
+            "AAPL", "MSFT", "GOOGL", "AMZN", "FB", "TSLA", "BRK-B", "JPM", "JNJ", "V",
+            "WMT", "PG", "NVDA", "DIS", "PYPL", "MA", "HD", "VZ", "NFLX", "ADBE",
+            "INTC", "PFE", "T", "MRK", "KO", "PEP", "CMCSA", "ABT", "CSCO", "XOM",
+            "NKE", "ABBV", "CVX", "ORCL", "ACN", "AVGO", "LLY", "COST", "DHR", "QCOM",
+            "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM"
+        ]
+        for ticker in tickers:
+            data = fetch_and_filter_data(ticker)
+            update_ticker_statement(db, ticker, data)
