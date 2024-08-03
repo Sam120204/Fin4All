@@ -5,10 +5,11 @@ connect_string = f"mongodb+srv://{settings.MONGO_DB_USER}:{settings.MONGO_DB_PWD
 client = MongoClient(connect_string)
 db = client['Fin4All']
 
+# assumes data is an object
 def insert_into_collection(collection_name, data):
     try:
         create_collection_if_not_exists(collection_name)
-        db[collection_name].insert_one(data.__dict__)
+        db[collection_name].insert_one(data.to_dict())
     except Exception as e:
         print(e)
 

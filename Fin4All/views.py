@@ -11,7 +11,9 @@ from authlib.integrations.django_client import OAuth
 from django.shortcuts import redirect, render, redirect
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
-from Fin4All.DB.main import *
+from Fin4All.DB.models.Recommendation import *
+from Fin4All.DB.models.Preference import *
+from Fin4All.DB.models.Portfolio import *
 
 oauth = OAuth()
 
@@ -55,7 +57,8 @@ def logout(request):
 def add_recommendation(request, username):
     if request.method == 'POST':
         data = json.loads(request.body)
-        update_recommendation(username, data['suggestion'], data['type'])
+        data["username"] = username
+        update_recommendation(username, data)
         return HttpResponse("OK", status=200)
     return JsonResponse({"error": "Invalid request method"})
 
@@ -63,6 +66,20 @@ def add_recommendation(request, username):
 def read_recommendation(request, username):
     if request.method == 'GET':
         return JsonResponse(get_recommendation(username), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def modify_portfolio(request, username):
+    if request.method == 'POST':
+        data = json.loads(request.body) # type is dict
+        update_portfolio(username, Portfolio.from_dict(data))
+        return HttpResponse("Update Success", status=200)
+    return JsonResponse({"error": "Invalid request method"})
+
+@csrf_exempt
+def read_portfolio(request, username):
+    if request.method == 'GET':
+        return JsonResponse(get_portfolio(username), status=200)
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt

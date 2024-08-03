@@ -25,4 +25,6 @@ urlpatterns = [
     path('logout', views.logout, name="logout"),
     path('add_recommendation/<str:username>', views.add_recommendation, name='add_recommendation'),
     path('read_recommendation/<str:username>', views.read_recommendation, name='read_recommendation'),
+    path('modify_portfolio/<str:username>', views.modify_portfolio, name='modify_portfolio'),
+    path('read_portfolio/<str:username>', views.read_portfolio, name='read_portfolio'),
 ]
