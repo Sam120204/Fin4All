@@ -23,5 +23,6 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('callback', views.callback, name='callback'),
     path('logout', views.logout, name="logout"),
-    # path('recommend/<int:user_id>', views.recommend, name='recommend'),
+    path('add_recommendation/<str:username>', views.add_recommendation, name='add_recommendation'),
+    path('read_recommendation/<str:username>', views.read_recommendation, name='read_recommendation'),
 ]

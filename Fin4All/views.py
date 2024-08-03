@@ -11,6 +11,7 @@ from authlib.integrations.django_client import OAuth
 from django.shortcuts import redirect, render, redirect
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
+from Fin4All.DB.main import *
 
 oauth = OAuth()
 
@@ -49,6 +50,20 @@ def logout(request):
             quote_via=quote_plus,
         ),
     )
+
+@csrf_exempt
+def add_recommendation(request, username):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        update_recommendation(username, data['suggestion'], data['type'])
+        return HttpResponse("OK", status=200)
+    return JsonResponse({"error": "Invalid request method"})
+
+@csrf_exempt
+def read_recommendation(request, username):
+    if request.method == 'GET':
+        return JsonResponse(get_recommendation(username), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
 def index(request):
