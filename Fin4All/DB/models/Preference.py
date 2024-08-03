@@ -1,7 +1,7 @@
 from Fin4All.DB.models import InvestmentType
 
-class Recommendation:
-    def __init__(self, username, suggestion, type):
+class Preference:
+    def __init__(self, username, detail, type):
         self.username = username
-        self.suggestion = suggestion
+        self.detail = detail
         self.type = InvestmentType.from_string(type).name
