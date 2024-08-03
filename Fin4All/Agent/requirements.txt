@@ -1,0 +1,15 @@
+requests
+yfinance
+beautifulsoup4
+Flask
+Jinja2
+lxml
+MarkupSafe
+requests
+urllib3
+Werkzeug
+bs4
+gunicorn
+flask-cors
+pytz
+ParameterSource

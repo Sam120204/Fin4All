@@ -27,9 +27,9 @@ def fetch_and_filter_data(ticker_symbol):
     ]
 
     # Fetch the data
-    income_stmt = ticker.quarterly_financials
-    balance_sheet = ticker.quarterly_balance_sheet
-    cashflow = ticker.quarterly_cashflow
+    income_stmt = ticker.financials
+    balance_sheet = ticker.balance_sheet
+    cashflow = ticker.cashflow
 
     # Filter the data to keep only the required fields and the latest two years
     income_stmt = income_stmt.loc[[field for field in income_stmt_fields if field in income_stmt.index]].iloc[:, :2]

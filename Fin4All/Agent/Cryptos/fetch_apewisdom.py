@@ -1,6 +1,6 @@
 import requests
 
-def fetch_top_stocks(filter='all-stocks', top_n=50):
+def fetch_top_crypto(filter='all-crypto', top_n=50):
     base_url = 'https://apewisdom.io/api/v1.0/filter'
     page = 1
     results = []
@@ -19,10 +19,10 @@ def fetch_top_stocks(filter='all-stocks', top_n=50):
     return results[:top_n]
 
 def main():
-    print("Top Trending Stocks on Reddit:")
-    top_stocks = fetch_top_stocks()
-    for stock in top_stocks:
-        print(stock)
+    print("\nTop Trending Cryptocurrencies on Reddit in the past 24 hours:")
+    top_cryptos = fetch_top_crypto()
+    for crypto in top_cryptos:
+        print(crypto)
 
 if __name__ == '__main__':
     main()
