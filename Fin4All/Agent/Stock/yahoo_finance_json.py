@@ -74,6 +74,10 @@ if __name__ == "__main__":
         "NKE", "ABBV", "CVX", "ORCL", "ACN", "AVGO", "LLY", "COST", "DHR", "QCOM",
         "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM"
     ]
-    tickers = fetch_top_stocks()
-    for ticker in tickers:
+    new_tickers = [
+        "ISRG", "SQ", "AMD", "ENPH", "SEDG", "FSLR", "RUN", "BE", "PLUG", "SPWR",
+        "NOVA", "BLDP", "REGI", "CWEN", "HASI", "BIIB", "AMGN", "GILD", "MRNA", "VRTX",
+        "FLNC", "RNW"
+    ]
+    for ticker in new_tickers:
         fetch_and_filter_data(ticker)
