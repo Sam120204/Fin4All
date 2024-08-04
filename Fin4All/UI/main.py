@@ -10,29 +10,65 @@ def display_login_page():
     placeholder = st.empty()
     with placeholder.form("login"):
         st.markdown("#### Login")
-        email = st.text_input("Email")
+        username = st.text_input("Username")
         password = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
         
         if submit:
-            if request_login(email, password):
+            if request_login(username, password):
                 st.success("Login successful")
                 st.session_state["authenticated"] = True
+                st.session_state["username"] = username
                 st.rerun()
             else:
                 st.error("Invalid Credentials")
             
 
 def display_stock_graphs():
-    st.text("Stock Graphs")
+    st.text("Trending Stocks")
     
+def display_chatbot():    
+    # Display a header for the chat
+    st.header("Chat with the customized finance Bot")
+
+    # Initialize chat history
+    if 'messages' not in st.session_state:
+        st.session_state['messages'] = []
+
+    # Display chat messages from history on app rerun
+    for message in st.session_state['messages']:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Prompt user for input and handle input submission
+    if user_input := st.chat_input("You:"):
+        # Store user message in session state
+        st.session_state['messages'].append({"role": "user", "content": user_input})
+        # Display user message in chat message container
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        # Simulate bot response
+        # bot_response = generate_bot_response(user_input)
+        bot_response = user_input
+        st.session_state['messages'].append({"role": "bot", "content": bot_response})
+        
+        # Display bot response in chat message container
+        with st.chat_message("bot"):
+            st.markdown(bot_response)
 
 def display_dashboard_page():
     if "authenticated" in st.session_state and st.session_state["authenticated"]:
-        st.markdown("<h1 style='text-align: center'>Dashboard</h1>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center'>Dashboard</h2>", unsafe_allow_html=True)
         display_stock_graphs()
     else:
         display_login_page()
 
 if __name__ == '__main__':
-    display_dashboard_page()
+    st.markdown("<h1 style='text-align: center'>Welcome to Fin4All</h1>", unsafe_allow_html=True)
+
+    mode = st.sidebar.radio('Select Page:', ['Chatbot', 'Dashboard'])
+    if mode == 'Chatbot':
+        display_chatbot()
+    else:
+        display_dashboard_page()

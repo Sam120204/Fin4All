@@ -80,7 +80,7 @@ def register(request):
     data = json.loads(body)
     username = data["username"]
     password = data["password"]
-    if (get_user_by_username(username) is None):
+    if (get_user_by_credential(username) is None):
         create_user(username, password)
         return HttpResponse("Register Success", status=200)
     else:
