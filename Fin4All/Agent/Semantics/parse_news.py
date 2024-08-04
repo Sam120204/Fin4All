@@ -5,9 +5,9 @@ import dotenv
 import os
 import finnhub
 from datetime import datetime, timedelta
+from gpt_investment_analysis import get_database
 
 dotenv.load_dotenv()
-# test_url = "https://finance.yahoo.com/video/intel-needs-lot-things-play-224846113.html"
 
 
 def clean_text(text):
@@ -70,3 +70,55 @@ def extract_with_bs4(url):
         article_text = " ".join([p.get_text() for p in paragraphs])
 
     return article_text
+
+
+def update_url(ticker, finnhub_news):
+    db = get_database()
+    collection = db['NewsSentiment']
+
+    for new_article in finnhub_news:
+        headline = new_article['headline']
+        url = new_article['url']
+
+        if url:
+            # Find the matching news in the database by headline
+            result = collection.find_one({"ticker": ticker, "articles.headline": headline})
+
+            if result:
+                # Update the existing news article with the new URL
+                collection.update_one(
+                    {"ticker": ticker, "articles.headline": headline},
+                    {"$set": {"articles.$.url": url}}
+                )
+                print(f"Updated article with headline: {headline} with URL: {url}")
+            else:
+                print(f"No match found for headline: {headline} in the database.")
+        else:
+            print(f"No URL found for article with headline: {headline}")
+
+
+def process_all_tickers():
+    db = get_database()
+    collection = db['NewsSentiment']
+
+    # Get all distinct tickers in the database
+    tickers = collection.distinct("ticker")
+
+    finnhub_client = finnhub.Client(api_key=os.environ.get("FINNHUB_API_KEY"))
+
+    # Calculate the date range for the past week
+    to_date = datetime.now().strftime('%Y-%m-%d')
+    from_date = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
+
+    # Iterate through each ticker and update the news articles
+    for ticker in tickers:
+        print(f"Processing ticker: {ticker}")
+
+        # Fetch company news for the past week
+        finnhub_news = finnhub_client.company_news(ticker, _from=from_date, to=to_date)
+
+        # Update the news articles in the database with the URL
+        update_url(ticker, finnhub_news)
+
+
+process_all_tickers()
