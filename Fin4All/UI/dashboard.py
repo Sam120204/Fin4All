@@ -27,12 +27,12 @@ if selected_ticker and selected_ticker in stock_data:
     st.subheader(f"{selected_ticker} Stock Performance")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Current Price", f"${details['Current Price']:.2f}", f"{details['Price Change (%)']:.2f}%")
+        st.metric("**Current Price**", f"${details['Current Price']:.2f}", f"{details['Price Change (%)']:.2f}%")
     with col2:
         st.write("**52-Week Range**")
         st.progress((details['Current Price'] - details['52-Week Low']) / (details['52-Week High'] - details['52-Week Low']))
     with col3:
-        st.metric("Volume", f"{details['Volume']:,}")
+        st.metric("**Volume**", f"{details['Volume']:,}")
 
     # Daily Market Summary with Improved UI
     st.subheader("Daily Market Summary")
@@ -69,11 +69,11 @@ if selected_ticker and selected_ticker in stock_data:
 
     # Financial Data
     st.subheader("Financial Data")
-    with st.expander("Balance Sheet"):
+    with st.expander("**Balance Sheet**"):
         st.dataframe(details['Balance Sheet'].style.format("{:.2f}"))
-    with st.expander("Cash Flow Statement"):
+    with st.expander("**Cash Flow Statement**"):
         st.dataframe(details['Cash Flow'].style.format("{:.2f}"))
-    with st.expander("Income Statement"):
+    with st.expander("**Income Statement**"):
         st.dataframe(details['Income Statement'].style.format("{:.2f}"))
 
 
@@ -156,5 +156,31 @@ if 'Sentiment Summary' in details and details['Sentiment Summary']:
     )
 
 # Footer
-st.markdown("---")
-st.markdown("Built by Fin4ALL TEAM")
+footer_style = """
+    <style>
+        .footer {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #555;
+            font-size: 1em;
+            font-weight: 600;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+    </style>
+    <div class="footer">
+        Built by <a href="https://github.com/Sam120204/Fin4All" target="_blank">Fin4ALL TEAM</a> | © 2024 All Rights Reserved
+    </div>
+"""
+
+st.markdown(footer_style, unsafe_allow_html=True)
+
