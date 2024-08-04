@@ -1,9 +1,9 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from parse_news import extract_with_bs4, extract_article_url
-from openai import OpenAI
 import os
 import dotenv
+import finnhub
 
+dotenv.load_dotenv()
 
 def check_if_subjective(text):
     analyzer = SentimentIntensityAnalyzer()
@@ -11,11 +11,18 @@ def check_if_subjective(text):
     return sentiment['neu'] > 0.7
 
 
+def get_general_sentiment(tickers):
+    formatted_reports = []
+    finnhub_client = finnhub.Client(api_key=os.environ.get("FINNHUB_API_KEY"))
 
+    for ticker in tickers:
+        report = finnhub_client.news_sentiment(ticker)
+        formatted_report = f"""
+            **{report['symbol']}**:
+            - **News Score**: {report['companyNewsScore']}
+            - **Sentiment**: {report['sentiment']['bullishPercent'] * 100}% Bullish, {report['sentiment']['bearishPercent'] * 100}% Bearish
+            - **Articles This Week**: {report['buzz']['articlesInLastWeek']}
+            """
+        formatted_reports.append(formatted_report.strip())
 
-
-for url in extract_article_url("AAPL"):
-    print(url)
-    print(extract_with_bs4(url))
-    print(check_if_subjective(extract_with_bs4(url)))
-
+    return "\n".join(formatted_reports)
