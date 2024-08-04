@@ -26,7 +26,10 @@ def update_collection(collection_name, new_data):
 
 def find_from_collection(collection_name, query):
     try:
+        create_collection_if_not_exists(collection_name)
         document = db[collection_name].find_one(query)
+        if (document is None):
+            return None
         document['_id'] = str(document['_id'])
         return document
     except Exception as e:
