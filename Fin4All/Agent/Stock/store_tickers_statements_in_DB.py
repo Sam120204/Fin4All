@@ -5,7 +5,7 @@ from pymongo.errors import ConnectionFailure
 from dotenv import load_dotenv
 from fetch_ticker_price import fetch_price_data
 import os
-
+from fetch_store_ticker_price import fetch_three_months_data, date_to_str
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -43,7 +43,7 @@ def clear_collection(db, collection_name):
             print(f"The collection '{collection_name}' does not exist in the database.")
     except Exception as e:
         print(f"Error clearing the collection: {e}")
-        
+   
 
 def fetch_and_filter_data(ticker_symbol):
     # Initialize the Ticker object
@@ -76,13 +76,9 @@ def fetch_and_filter_data(ticker_symbol):
     cashflow = ticker.quarterly_cashflow
 
     # Filter the data to keep only the required fields and the latest two quarters
-    income_stmt = income_stmt.loc[[field for field in income_stmt_fields if field in income_stmt.index]].iloc[:, :2]
-    balance_sheet = balance_sheet.loc[[field for field in balance_sheet_fields if field in balance_sheet.index]].iloc[:, :2]
-    cashflow = cashflow.loc[[field for field in cashflow_fields if field in cashflow.index]].iloc[:, :2]
-
-    # Fill missing fields with the mean value of that field
-    for df in [income_stmt, balance_sheet, cashflow]:
-        df.fillna(df.mean(), inplace=True)
+    income_stmt = income_stmt.loc[[field for field in income_stmt_fields if field in income_stmt.index]].iloc[:, :2].fillna(0)
+    balance_sheet = balance_sheet.loc[[field for field in balance_sheet_fields if field in balance_sheet.index]].iloc[:, :2].fillna(0)
+    cashflow = cashflow.loc[[field for field in cashflow_fields if field in cashflow.index]].iloc[:, :2].fillna(0)
 
     # Convert DataFrames to dictionaries
     income_stmt_dict = income_stmt.transpose().to_dict(orient='index')
@@ -96,6 +92,11 @@ def fetch_and_filter_data(ticker_symbol):
 
     # Fetch price data
     price_data = fetch_price_data(ticker_symbol)
+    
+    # Convert DataFrame to list of dictionaries for prices
+    ticker_prices_df = fetch_three_months_data(ticker_symbol)
+    ticker_prices = [{"Date": date_to_str(row['Date']), "Close": row['Close']} for index, row in ticker_prices_df.iterrows()]
+
 
     # Create the final data structure
     data = {
@@ -103,7 +104,8 @@ def fetch_and_filter_data(ticker_symbol):
         "price": price_data,
         "income_statement_quarter": income_stmt_dict,
         "balance_sheet": balance_sheet_dict,
-        "cashflow": cashflow_dict
+        "cashflow": cashflow_dict,
+        "Prices": ticker_prices  # Store as a list of dicts
     }
 
     return data
@@ -135,7 +137,7 @@ if __name__ == "__main__":
             "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM", 
             "ISRG", "SQ", "AMD", "ENPH", "SEDG", "FSLR", "RUN", "BE", "PLUG", "SPWR",
             "NOVA", "BLDP", "CWEN", "HASI", "BIIB", "AMGN", "GILD", "MRNA", "VRTX",
-            "FLNC", "RNW"
+            "FLNC"
         ]
         for ticker in tickers:
             data = fetch_and_filter_data(ticker)

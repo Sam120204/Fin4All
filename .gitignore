@@ -4,3 +4,4 @@ Fin4All/Agent/Semantics/.env
 /Fin4All/Agent/myenv
 Fin4All/Agent/Stock/__pycache__
 /Fin4All/Agent/Stock/.env
+/Fin4All/UI/fetch_data/.env
