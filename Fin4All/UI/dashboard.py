@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Importing fetch_stock_data_from_db from DB.fetch_data package
 from fetch_data.fetch_data_from_ticker_statements import fetch_stock_data_from_db
-
 
 # Fetch stock data from the database
 stock_data = fetch_stock_data_from_db()
@@ -27,38 +25,39 @@ if selected_ticker and selected_ticker in stock_data:
     st.subheader(f"{selected_ticker} Stock Performance")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("**Current Price**", f"${details['Current Price']:.2f}", f"{details['Price Change (%)']:.2f}%")
+        st.metric("**Current Price**", f"${details['Current Price']:.2f}", f"{details['Price Change (%)']:.2f}%",
+                  delta_color="inverse")
     with col2:
-        st.write("**52-Week Range**")
+        st.write("**Price position within 52-Week Range**")
         st.progress((details['Current Price'] - details['52-Week Low']) / (details['52-Week High'] - details['52-Week Low']))
     with col3:
-        st.metric("**Volume**", f"{details['Volume']:,}")
+        st.metric("**Shares traded in the past month**", f"{details['Volume']:,}")
 
     # Daily Market Summary with Improved UI
     st.subheader("Daily Market Summary")
     summary_style = """
-        display: grid; 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 20px; 
+        display: flex; 
+        justify-content: space-between; 
         background-color: #f9f9f9; 
         border-radius: 8px; 
         padding: 16px; 
         border: 1px solid #ddd;
+        margin-bottom: 20px;
     """
     
     with st.container():
         st.markdown(
             f"""
             <div style="{summary_style}">
-                <div style="text-align: center;">
+                <div style="text-align: center; flex: 1;">
                     <strong>Open Price</strong>
                     <div>${details['Open Price']:.2f}</div>
                 </div>
-                <div style="text-align: center;">
+                <div style="text-align: center; flex: 1;">
                     <strong>Close Price</strong>
                     <div>${details['Close Price']:.2f}</div>
                 </div>
-                <div style="text-align: center; color: {'green' if details['Close Price'] > details['Open Price'] else 'red'};">
+                <div style="text-align: center; color: {'green' if details['Close Price'] > details['Open Price'] else 'red'}; flex: 1;">
                     <strong>Status</strong>
                     <div>{'CLOSED ABOVE' if details['Close Price'] > details['Open Price'] else 'CLOSED BELOW'}</div>
                 </div>
@@ -75,7 +74,6 @@ if selected_ticker and selected_ticker in stock_data:
         st.dataframe(details['Cash Flow'].style.format("{:.2f}"))
     with st.expander("**Income Statement**"):
         st.dataframe(details['Income Statement'].style.format("{:.2f}"))
-
 
     # Enhanced Historical Price Chart using Matplotlib
     st.subheader("Historical Price Chart")
@@ -104,7 +102,7 @@ if selected_ticker and selected_ticker in stock_data:
     else:
         st.warning("No historical price data available for this ticker.")
         
-    # Latest News with clickable links and sentiment summary
+# Latest News with clickable links and sentiment summary
 st.subheader("Latest News")
 news_style = """
     border-radius: 8px; 
@@ -114,6 +112,7 @@ news_style = """
     border: 1px solid #ddd;
     transition: background-color 0.3s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 0.95em;
 """
 
 news_link_style = """
@@ -166,6 +165,7 @@ footer_style = """
             color: #555;
             font-size: 1em;
             font-weight: 600;
+            margin-top: 30px;
         }
         .footer a {
             color: #007bff;
@@ -183,4 +183,3 @@ footer_style = """
 """
 
 st.markdown(footer_style, unsafe_allow_html=True)
-
