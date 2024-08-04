@@ -1,6 +1,10 @@
 Fin4All/Agent/Semantics/.env
 .env
 /**/*/__pycache__
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
 /Fin4All/Agent/myenv
 Fin4All/Agent/Stock/__pycache__
 /Fin4All/Agent/Stock/.env

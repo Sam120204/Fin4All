@@ -13,3 +13,4 @@ Werkzeug
 bs4
 pytz
 ParameterSource
+streamlit
