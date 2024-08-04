@@ -1,4 +1,3 @@
-from newspaper import Article
 from bs4 import BeautifulSoup
 import requests
 import yfinance as yf
@@ -71,11 +70,3 @@ def extract_with_bs4(url):
         article_text = " ".join([p.get_text() for p in paragraphs])
 
     return article_text
-
-
-# Function to extract article text using Newspaper3K
-def extract_with_newspaper(url):
-    article = Article(url)
-    article.download()
-    article.parse()
-    return article.text

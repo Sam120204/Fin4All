@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-from FinGPT_sentiment import update_finnhub_news_sentiment
 
 # Load environment variables from the .env file
 load_dotenv()
