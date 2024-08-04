@@ -15,52 +15,9 @@ from Fin4All.DB.models.Recommendation import *
 from Fin4All.DB.models.Preference import *
 from Fin4All.DB.models.Portfolio import *
 from Fin4All.DB.models.User import *
+from Fin4All.Agent.Chatbot.main import *
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
-
-"""
-oauth = OAuth()
-
-oauth.register(
-    "auth0",
-    client_id=settings.AUTH0_CLIENT_ID,
-    client_secret=settings.AUTH0_CLIENT_SECRET,
-    client_kwargs={
-        "scope": "openid profile email",
-    },
-    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
-)
-
-@csrf_exempt
-def login(request):
-    return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("callback"))
-    )
-
-@csrf_exempt
-def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect("http://localhost:8501")
-
-@csrf_exempt
-def check_session(request):
-    return HttpResponse("user" in request.session, status=200)
-
-@csrf_exempt
-def logout(request):
-    request.session.clear()
-    return redirect(
-        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("index")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
-            quote_via=quote_plus,
-        ),
-    )
-"""
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -114,6 +71,13 @@ def read_portfolio(request, username):
     if request.method == 'GET':
         return JsonResponse(get_portfolio(username), status=200)
     return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def generate_answer(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        return HttpResponse(generate_response(data['username'], data['question'], data['history']), status=200)
+    return JsonResponse({"error": "Invalid request method"})
 
 @csrf_exempt
 def index(request):
