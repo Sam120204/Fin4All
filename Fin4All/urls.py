@@ -26,4 +26,5 @@ urlpatterns = [
     path('modify_portfolio/<str:username>', views.modify_portfolio, name='modify_portfolio'),
     path('read_portfolio/<str:username>', views.read_portfolio, name='read_portfolio'),
     path('generate_response', views.generate_answer, name='generate_answer'),
+    path('search_for_headline', views.search_for_headline, name='search_for_headline'),
 ]
