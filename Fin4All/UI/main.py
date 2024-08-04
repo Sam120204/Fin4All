@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import requests
-from fetch_data.fetch_data_from_ticker_statements import fetch_stock_data_from_db
 import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from Fin4All.UI.fetch_data.fetch_data_from_ticker_statements import *
+from Fin4All.Agent.Semantics.gpt_investment_analysis import *
 
 # Page configuration
 st.set_page_config(page_title="Stock Dashboard", layout="wide")
@@ -292,6 +292,91 @@ def display_chatbot():
         with st.chat_message("bot"):
             st.markdown(bot_response)
 
+
+def get_user_profile(username):
+    db = get_database()
+    collection = db['portfolio']
+    return collection.find_one({"username": st.session_state.get('username', 'guest')})
+
+def display_profile():
+    if "experience" not in st.session_state:
+        st.session_state["experience"] = "None"
+    if "preference" not in st.session_state:
+        st.session_state["preference"] = "None"
+    if "balance" not in st.session_state:
+        st.session_state["balance"] = "None"
+    if "report" not in st.session_state:
+        st.session_state["report"] = "None"
+
+    st.header("User Profile")
+    st.write(f"Username: {st.session_state.get('username', 'guest')}")
+
+    if st.button("Logout"):
+        st.session_state["authenticated"] = False
+        st.session_state["username"] = "guest"
+        st.session_state["messages"] = []
+        st.success("Logged out successfully")
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    if st.session_state['experience'] == 'None' or st.session_state['preference'] == 'None' or st.session_state['balance'] == 'None' or st.session_state['report'] == 'None':
+        cur_user_portfolio = get_user_profile(st.session_state.get('username', 'guest'))
+        st.session_state['experience'] = cur_user_portfolio['experience'] if cur_user_portfolio else 'None'
+        st.session_state['preference'] = cur_user_portfolio['preference']['stock'] if cur_user_portfolio else 'None'
+        st.session_state['balance'] = cur_user_portfolio['balance'] if cur_user_portfolio else 'None'
+
+    resubmit_flag = False
+
+    with col1:
+        experience = st.text_input('Experience', value=st.session_state['experience'])
+    with col2:
+        preference = st.text_input('Preference/Strategy', value=st.session_state['preference'] if st.session_state['preference'] else 'None')
+    with col3:
+        balance = st.text_input('Balance', value=st.session_state['balance'])
+    with col4:
+        subject = st.text_input('Ticker/Sector')
+
+    # Create a button to submit the inputs
+    with col5:
+        if st.button('Submit'):
+            # Prepare the update document
+            update_doc = {
+                "$set": {
+                    "experience": experience,
+                    "preference.stock": preference,  # Assuming 'preference' is a subdocument
+                    "balance": balance
+                }
+            }
+            st.session_state['experience'] = experience
+            st.session_state['preference'] = preference
+            st.session_state['balance'] = balance
+
+            # Update the document in MongoDB
+            collection = get_database()['portfolio']
+            collection.update_one({"username": st.session_state['username']}, update_doc)
+            resubmit_flag = True
+            st.success("Submit successful")
+
+    st.write("Enter 'renew' for Renewable Engergy Sector, 'tech' for Technology Sector, 'pharma' for Pharmaceutical Sector, or ticker symbol for a specific stock.")
+
+    if resubmit_flag:
+        display_text = "You have successfully updated your profile. Please check your profile in a few minutes for a new report."
+        recommendation_collection = get_database()['recommendation']
+        recommendation_collection.update_one({"username": st.session_state.get('username', 'guest')}, {"$set": {"stock_suggestion": display_text}})
+    else:
+        display_text = st.session_state['report']
+        if st.session_state['report'] == 'None' or 'report' not in st.session_state:
+            display_text = get_database()['recommendation'].find_one({"username": st.session_state.get('username', 'guest')})['stock_suggestion']
+
+    st.subheader("Stock Suggestion")
+    st.write(display_text)
+    if resubmit_flag:
+        if subject == 'renew' or subject == 'tech' or subject == 'pharma':
+            store_gpt_recommendation_in_db(st.session_state.get('username', 'guest'), experience, preference, balance, None, subject)
+        else:
+            store_gpt_recommendation_in_db(st.session_state.get('username', 'guest'), experience, preference, balance, subject, None)
+
+
 def display_dashboard_page():
     if "authenticated" in st.session_state and st.session_state["authenticated"]:
         # st.markdown("<h2 style='text-align: center'>Dashboard</h2>", unsafe_allow_html=True)
@@ -303,8 +388,10 @@ if __name__ == '__main__':
 
     # st.markdown("<h1 style='text-align: center'>Welcome to Fin4All</h1>", unsafe_allow_html=True)
 
-    mode = st.sidebar.radio('Select Page:', ['Chatbot', 'Dashboard'])
+    mode = st.sidebar.radio('Select Page:', ['Chatbot', 'Dashboard', 'Profile'])
     if mode == 'Chatbot':
         display_chatbot()
-    else:
+    elif mode == 'Dashboard':
         display_dashboard_page()
+    else:
+        display_profile()

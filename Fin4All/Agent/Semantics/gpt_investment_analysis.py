@@ -406,14 +406,14 @@ def get_gpt_recommendation(experience, perference, balance, ticker=None, field=N
         return f"Error: {str(e)}"
 
 
-def store_gpt_recommendation_in_db(experience, perference, balance, ticker=None, field=None):
+def store_gpt_recommendation_in_db(user, experience, perference, balance, ticker=None, field=None):
     db = get_database()
     collection = db['recommendation']
 
     recommendation = get_gpt_recommendation(experience, perference, balance, ticker, field)
 
     try:
-        collection.update_one({"username": "user4"},
+        collection.update_one({"username": user},
                               {"$set": {"stock_suggestion": recommendation}},
                               upsert=True
         )
