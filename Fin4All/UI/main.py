@@ -83,6 +83,7 @@ def display_login_page():
                 st.success("Login successful")
                 st.session_state["authenticated"] = True
                 st.session_state["username"] = username
+                st.session_state['messages'] = []
                 st.rerun()
             else:
                 st.error("Invalid Credentials")
@@ -314,7 +315,7 @@ def display_profile():
     if st.button("Logout"):
         st.session_state["authenticated"] = False
         st.session_state["username"] = "guest"
-        st.session_state["messages"] = []
+        st.session_state['messages'] = []
         st.success("Logged out successfully")
 
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -366,7 +367,11 @@ def display_profile():
     else:
         display_text = st.session_state['report']
         if st.session_state['report'] == 'None' or 'report' not in st.session_state:
-            display_text = get_database()['recommendation'].find_one({"username": st.session_state.get('username', 'guest')})['stock_suggestion']
+            recommendation = get_database()['recommendation'].find_one({"username": st.session_state.get('username', 'guest')})
+            if recommendation:
+                display_text = recommendation.get('stock_suggestion', 'None')
+            else:
+                display_text = 'None'
 
     st.subheader("Stock Suggestion")
     st.write(display_text)

@@ -31,6 +31,9 @@ Response:"""
 
 prompt_template = PromptTemplate.from_template(template)
 
+def get_stock_pref(preference):
+    return preference.stock if type(preference) is Preference else preference['stock']
+
 class ChatBot:
     memory = ConversationBufferMemory(memory_key="chat_history")
     llm = OpenAI(temperature=0.9)
@@ -44,7 +47,7 @@ class ChatBot:
     def load_conversation_user_context(self, portfolio):
         balance_msg = f"My current account balance is {portfolio['balance']}"
         experience_msg = f"My experience in investing is {portfolio['experience']}"
-        pref_stock_msg = f"My personal preference in investing in stock is {portfolio['preference'].stock}"
+        pref_stock_msg = f"My personal preference in investing in stock is {get_stock_pref(portfolio['preference'])}"
         self.memory.chat_memory.add_user_message(balance_msg)
         self.memory.chat_memory.add_user_message(experience_msg)
         self.memory.chat_memory.add_user_message(pref_stock_msg)
