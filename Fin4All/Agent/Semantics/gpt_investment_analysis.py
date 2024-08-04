@@ -321,6 +321,64 @@ Your final response should be in the format of a detailed investment report. Try
         return prompt
 
 
+# Function to generate sentiment summary using OpenAI
+def generate_sentiment_summary(ticker, articles):
+    # Prepare the prompt
+    prompt = f"""
+    Here are the summarized sentiments for the news articles about {ticker}:
+    """
+
+    for article in articles:
+        prompt += f"- {article['headline']}: {article['sentiment'].replace('</s>', '')}\n"
+
+    prompt += "\nBased on this information, please summarize the overall sentiment toward {ticker}."
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+    # Call the OpenAI API to generate the summary
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        stream=True,
+        max_tokens=4000
+    )
+
+    full_text = ""
+    for chunk in response:
+        full_text += chunk.choices[0].delta.content or ""
+
+    print(full_text.strip())
+    return full_text.strip()
+
+
+# Function to update MongoDB with the sentiment summary
+def update_ticker_with_sentiment_summary():
+    db = get_database()
+    collection = db['NewsSentiment']
+
+    # Fetch all tickers with articles
+    tickers = collection.find({"articles": {"$exists": True, "$not": {"$size": 0}}})
+
+    for ticker_data in tickers:
+        ticker = ticker_data['ticker']
+        articles = ticker_data['articles']
+
+        # Generate sentiment summary using OpenAI
+        sentiment_summary = generate_sentiment_summary(ticker, articles)
+
+        # Update the MongoDB document with the sentiment summary
+        collection.update_one(
+            {"_id": ticker_data['_id']},
+            {"$set": {"sentiment_summary": sentiment_summary}}
+        )
+        print(f"Updated sentiment summary for ticker: {ticker}")
+
+
 def get_gpt_recommendation(experience, perference, balance, ticker=None, field=None):
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
@@ -346,3 +404,19 @@ def get_gpt_recommendation(experience, perference, balance, ticker=None, field=N
     except Exception as e:
         print(e)
         return f"Error: {str(e)}"
+
+
+def store_gpt_recommendation_in_db(experience, perference, balance, ticker=None, field=None):
+    db = get_database()
+    collection = db['recommendation']
+
+    recommendation = get_gpt_recommendation(experience, perference, balance, ticker, field)
+
+    try:
+        collection.update_one({"username": "user4"},
+                              {"$set": {"stock_suggestion": recommendation}},
+                              upsert=True
+        )
+        print("Recommendation stored successfully.")
+    except Exception as e:
+        print(e)
