@@ -7,57 +7,50 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse
 from django.http import JsonResponse
-from authlib.integrations.django_client import OAuth
 from django.shortcuts import redirect, render, redirect
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
-from Fin4All.DB.main import *
-
-oauth = OAuth()
-
-oauth.register(
-    "auth0",
-    client_id=settings.AUTH0_CLIENT_ID,
-    client_secret=settings.AUTH0_CLIENT_SECRET,
-    client_kwargs={
-        "scope": "openid profile email",
-    },
-    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
-)
+from Fin4All.DB.models.Recommendation import *
+from Fin4All.DB.models.Preference import *
+from Fin4All.DB.models.Portfolio import *
+from Fin4All.DB.models.User import *
+from Fin4All.DB.queries.headline import *
+from Fin4All.Agent.Chatbot.main import *
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def login(request):
-    return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("callback"))
-    )
+    data = json.loads(request.body)
+    username = data.get("username", '')
+    password = data.get("password", '')
+    user = get_user_by_credential(username, password)
+    if user is not None:
+        return JsonResponse({'message': 'Login Success'}, status=200)
+    else:
+        return JsonResponse({'error': 'Invalid Credentials'}, status=401)
 
 @csrf_exempt
-def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect(request.build_absolute_uri(reverse("index")))
-
-@csrf_exempt
-def logout(request):
-    request.session.clear()
-    return redirect(
-        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("index")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
-            quote_via=quote_plus,
-        ),
-    )
+def register(request):
+    body = request.body
+    data = json.loads(body)
+    username = data["username"]
+    password = data["password"]
+    if (get_user_by_credential(username) is None):
+        create_user(username, password)
+        return HttpResponse("Register Success", status=200)
+    else:
+        return HttpResponse("Username already exists", status=400)
 
 @csrf_exempt
 def add_recommendation(request, username):
     if request.method == 'POST':
         data = json.loads(request.body)
-        update_recommendation(username, data['suggestion'], data['type'])
+        data["username"] = username
+        update_recommendation(username, data)
         return HttpResponse("OK", status=200)
-    return JsonResponse({"error": "Invalid request method"})
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
 def read_recommendation(request, username):
@@ -66,12 +59,33 @@ def read_recommendation(request, username):
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
+def modify_portfolio(request, username):
+    if request.method == 'POST':
+        data = json.loads(request.body) # type is dict
+        update_portfolio(username, Portfolio.from_dict(data))
+        return HttpResponse("Update Success", status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def read_portfolio(request, username):
+    if request.method == 'GET':
+        return JsonResponse(get_portfolio(username), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def generate_answer(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        return HttpResponse(generate_response(data['username'], data['question'], data['history']), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def search_for_headline(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        return HttpResponse(vector_search(data['query']), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
 def index(request):
-    return render(
-        request,
-        "index.html",
-        context={
-            "session": request.session.get("user"),
-            "pretty": json.dumps(request.session.get("user"), indent=4),
-        },
-    )
+    return render(request, "index.html")

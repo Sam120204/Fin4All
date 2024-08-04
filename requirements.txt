@@ -19,3 +19,9 @@ transformers~=4.43.3
 peft~=0.5.0
 openai~=1.38.0
 vaderSentiment~=3.3.2
+streamlit
+langchain-community
+langchain_openai
+regex
+matplotlib
+

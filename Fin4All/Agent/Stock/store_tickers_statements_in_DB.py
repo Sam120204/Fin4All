@@ -3,8 +3,9 @@ import pandas as pd
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from dotenv import load_dotenv
+from fetch_ticker_price import fetch_price_data
 import os
-
+from fetch_store_ticker_price import fetch_three_months_data, date_to_str
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -29,6 +30,20 @@ def create_collection_if_not_exists(db, collection_name):
             print(f"Created the '{collection_name}' collection.")
     except Exception as e:
         print(f"Error creating collection: {e}")
+
+
+def clear_collection(db, collection_name):
+    try:
+        # Check if the collection exists
+        if collection_name in db.list_collection_names():
+            # Clear the collection by deleting all documents
+            result = db[collection_name].delete_many({})
+            print(f"Cleared {result.deleted_count} documents from the '{collection_name}' collection.")
+        else:
+            print(f"The collection '{collection_name}' does not exist in the database.")
+    except Exception as e:
+        print(f"Error clearing the collection: {e}")
+   
 
 def fetch_and_filter_data(ticker_symbol):
     # Initialize the Ticker object
@@ -61,13 +76,9 @@ def fetch_and_filter_data(ticker_symbol):
     cashflow = ticker.quarterly_cashflow
 
     # Filter the data to keep only the required fields and the latest two quarters
-    income_stmt = income_stmt.loc[[field for field in income_stmt_fields if field in income_stmt.index]].iloc[:, :2]
-    balance_sheet = balance_sheet.loc[[field for field in balance_sheet_fields if field in balance_sheet.index]].iloc[:, :2]
-    cashflow = cashflow.loc[[field for field in cashflow_fields if field in cashflow.index]].iloc[:, :2]
-
-    # Fill missing fields with the mean value of that field
-    for df in [income_stmt, balance_sheet, cashflow]:
-        df.fillna(df.mean(), inplace=True)
+    income_stmt = income_stmt.loc[[field for field in income_stmt_fields if field in income_stmt.index]].iloc[:, :2].fillna(0)
+    balance_sheet = balance_sheet.loc[[field for field in balance_sheet_fields if field in balance_sheet.index]].iloc[:, :2].fillna(0)
+    cashflow = cashflow.loc[[field for field in cashflow_fields if field in cashflow.index]].iloc[:, :2].fillna(0)
 
     # Convert DataFrames to dictionaries
     income_stmt_dict = income_stmt.transpose().to_dict(orient='index')
@@ -79,12 +90,22 @@ def fetch_and_filter_data(ticker_symbol):
     balance_sheet_dict = {str(k).split(" ")[0]: v for k, v in balance_sheet_dict.items()}
     cashflow_dict = {str(k).split(" ")[0]: v for k, v in cashflow_dict.items()}
 
+    # Fetch price data
+    price_data = fetch_price_data(ticker_symbol)
+    
+    # Convert DataFrame to list of dictionaries for prices
+    ticker_prices_df = fetch_three_months_data(ticker_symbol)
+    ticker_prices = [{"Date": date_to_str(row['Date']), "Close": row['Close']} for index, row in ticker_prices_df.iterrows()]
+
+
     # Create the final data structure
     data = {
         "ticker": ticker_symbol,
+        "price": price_data,
         "income_statement_quarter": income_stmt_dict,
         "balance_sheet": balance_sheet_dict,
-        "cashflow": cashflow_dict
+        "cashflow": cashflow_dict,
+        "Prices": ticker_prices  # Store as a list of dicts
     }
 
     return data
@@ -105,14 +126,18 @@ def update_ticker_statement(db, ticker, data):
 if __name__ == "__main__":
     db = get_database()
     if db is not None:
+        # clear_collection(db, "TickersStatement")
         # Call top 50 tickers from fetch_apewisdom (top_stocks.json)
         # For demonstration, we show them below
         tickers = [
-            "AAPL", "MSFT", "GOOGL", "AMZN", "FB", "TSLA", "BRK.B", "JPM", "JNJ", "V",
+            "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "BRK-B", "JPM", "JNJ", "V",
             "WMT", "PG", "NVDA", "DIS", "PYPL", "MA", "HD", "VZ", "NFLX", "ADBE",
             "INTC", "PFE", "T", "MRK", "KO", "PEP", "CMCSA", "ABT", "CSCO", "XOM",
             "NKE", "ABBV", "CVX", "ORCL", "ACN", "AVGO", "LLY", "COST", "DHR", "QCOM",
-            "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM"
+            "MCD", "NEE", "BMY", "TXN", "HON", "LOW", "UNH", "MDT", "LIN", "PM", 
+            "ISRG", "SQ", "AMD", "ENPH", "SEDG", "FSLR", "RUN", "BE", "PLUG", "SPWR",
+            "NOVA", "BLDP", "CWEN", "HASI", "BIIB", "AMGN", "GILD", "MRNA", "VRTX",
+            "FLNC"
         ]
         for ticker in tickers:
             data = fetch_and_filter_data(ticker)

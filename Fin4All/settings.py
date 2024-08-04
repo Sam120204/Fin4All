@@ -29,6 +29,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Application definition
 
@@ -108,11 +118,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 # Load environment definition file
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -124,3 +129,4 @@ AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
 AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
 MONGO_DB_USER = os.environ.get("MONGO_DB_USER")
 MONGO_DB_PWD = os.environ.get("MONGO_DB_PWD")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
