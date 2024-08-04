@@ -15,6 +15,7 @@ from Fin4All.DB.models.Recommendation import *
 from Fin4All.DB.models.Preference import *
 from Fin4All.DB.models.Portfolio import *
 from Fin4All.DB.models.User import *
+from Fin4All.DB.queries.headline import *
 from Fin4All.Agent.Chatbot.main import *
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
@@ -50,7 +51,7 @@ def add_recommendation(request, username):
         data["username"] = username
         update_recommendation(username, data)
         return HttpResponse("OK", status=200)
-    return JsonResponse({"error": "Invalid request method"})
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
 def read_recommendation(request, username):
@@ -64,7 +65,7 @@ def modify_portfolio(request, username):
         data = json.loads(request.body) # type is dict
         update_portfolio(username, Portfolio.from_dict(data))
         return HttpResponse("Update Success", status=200)
-    return JsonResponse({"error": "Invalid request method"})
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
 def read_portfolio(request, username):
@@ -77,7 +78,14 @@ def generate_answer(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         return HttpResponse(generate_response(data['username'], data['question'], data['history']), status=200)
-    return JsonResponse({"error": "Invalid request method"})
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def search_for_headline(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        return HttpResponse(vector_search(data['query']), status=200)
+    return JsonResponse({"error": "Invalid request method"}, status=400)
 
 @csrf_exempt
 def index(request):
