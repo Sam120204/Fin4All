@@ -26,34 +26,35 @@ def display_login_page():
 
 def display_stock_graphs():
     st.text("Trending Stocks")
+
+def generate_response(username, question, history):
+    headers = {'Content-Type': 'application/json'}
+    res = requests.post('http://localhost:8000/generate_response', 
+                        json={"username": username,
+                              "question": question,
+                              "history": history}, headers=headers)
+    return res.text
     
-def display_chatbot():    
-    # Display a header for the chat
+def display_chatbot():
     st.header("Chat with the customized finance Bot")
 
-    # Initialize chat history
+    # chat history
     if 'messages' not in st.session_state:
         st.session_state['messages'] = []
 
-    # Display chat messages from history on app rerun
     for message in st.session_state['messages']:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Prompt user for input and handle input submission
     if user_input := st.chat_input("You:"):
-        # Store user message in session state
         st.session_state['messages'].append({"role": "user", "content": user_input})
-        # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Simulate bot response
-        # bot_response = generate_bot_response(user_input)
-        bot_response = user_input
+        # gen response
+        bot_response = generate_response(st.session_state.get("username", "guest"), user_input, st.session_state['messages'])
         st.session_state['messages'].append({"role": "bot", "content": bot_response})
-        
-        # Display bot response in chat message container
+
         with st.chat_message("bot"):
             st.markdown(bot_response)
 
