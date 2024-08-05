@@ -15,15 +15,20 @@ Fin4All is an all-in-one investment assistant designed to empower users with var
 ## How we built it
 We built Fin4All using a combination of cutting-edge technologies and robust financial data sources. The backend is powered by Django, handling data processing, storage, and API interactions. We integrated OpenAI's GPT models for natural language processing and sentiment analysis, allowing us to generate insightful summaries and recommendations. Streamlit was used for the frontend, providing a clean and interactive user interface. Data from sources like Finnhub and Yahoo Finance is continuously fed into the system, ensuring that users always have the latest market information at their fingertips.
 
+![Chatbot](images/chatbot.png)
+
 ## Challenges we ran into
 One of the significant challenges we faced was managing and processing large volumes of financial data while staying within token limits for AI models. Ensuring that the platform could deliver real-time insights without compromising on accuracy or speed required extensive optimization. Another challenge was integrating multiple data sources and ensuring consistency across various modules of the platform. Balancing the user interface to be both comprehensive and user-friendly for investors of all experience levels was also a complex task that required thoughtful design and iteration.
 
-![Price](images/price.png)
 
 ## Accomplishments that we're proud of
 We’re incredibly proud of creating a platform that truly democratizes access to investment tools and insights. The seamless integration of AI-driven analysis with real-time financial data is a significant achievement, allowing us to deliver actionable insights to users in a matter of seconds. We also take pride in the user experience we've crafted, making a sophisticated tool accessible and easy to use for all types of investors. Successfully building a solution that bridges the gap between novice and expert investors feels like a meaningful step toward our goal of financial inclusivity.
 
+![Price](images/price.png)
+
 Meanwhile, by combining ticker-specific information with public discussions from platforms like Reddit, we provide a more robust analysis. This approach not only enhances the depth of our insights but also bridges the gap between traditional financial analysis and social sentiment, offering a comprehensive view that benefits both novice and expert investors.
+
+! [Profile](images/profile.png)
 
 ## What we learned
 Throughout the development of Fin4All, we gained valuable insights into the complexities of financial markets and the importance of user-centric design. We learned how to effectively harness AI to generate meaningful insights and the importance of optimizing data processing pipelines for real-time applications. Additionally, this project taught us the significance of iterative design, where user feedback was crucial in refining the platform’s features and user interface.
