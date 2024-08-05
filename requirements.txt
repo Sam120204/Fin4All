@@ -12,7 +12,7 @@ urllib3
 Werkzeug
 bs4
 pytz
-ParameterSource
+# ParameterSource
 finnhub-python
 beautifulsoup4~=4.12.3
 transformers~=4.43.3
@@ -24,4 +24,6 @@ langchain-community
 langchain_openai
 regex
 matplotlib
+click>=7.1.2
+fsspec>=2023.5.0
 

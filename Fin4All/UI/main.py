@@ -12,7 +12,7 @@ from Fin4All.Agent.Semantics.gpt_investment_analysis import *
 
 # Page configuration
 st.set_page_config(page_title="Stock Dashboard", layout="wide")
-st.title("Stock Dashboard")
+st.title("Fin4All: Your gateway to smarter investing")
 
 @st.cache_data
 def fetch_stock_data_from_db():
