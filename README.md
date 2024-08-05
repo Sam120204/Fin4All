@@ -28,7 +28,7 @@ We’re incredibly proud of creating a platform that truly democratizes access t
 
 Meanwhile, by combining ticker-specific information with public discussions from platforms like Reddit, we provide a more robust analysis. This approach not only enhances the depth of our insights but also bridges the gap between traditional financial analysis and social sentiment, offering a comprehensive view that benefits both novice and expert investors.
 
-! [Profile](images/profile.png)
+![Profile](images/profile.png)
 
 ## What we learned
 Throughout the development of Fin4All, we gained valuable insights into the complexities of financial markets and the importance of user-centric design. We learned how to effectively harness AI to generate meaningful insights and the importance of optimizing data processing pipelines for real-time applications. Additionally, this project taught us the significance of iterative design, where user feedback was crucial in refining the platform’s features and user interface.
